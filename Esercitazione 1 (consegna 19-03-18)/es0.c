@@ -1,37 +1,45 @@
-#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <time.h>
 
-/* this function is run by the second thread */
-void *inc_x(void *x_void_ptr)
-{
-/* increment x to 100 */
-    int *x_ptr = (int *)x_void_ptr;
-    while(++(*x_ptr) < 100);
-    printf("x increment finished\n");
-/* the function must return something - NULL will do */
+#define MAX_THREAD 5
+
+// The function to be executed by all threads
+void *myThreadFun(void *vargp) {
+
+    int *myid = (int *) vargp;
+
+    for (int i = 0; i < 500; i++) {
+        printf("(Thread ID: %d) i = %d\r\n", *myid, i);
+        if (i % (1+rand()%200) == 0){
+            printf("sleeping...\r\n");
+            sleep(1);
+        }
+    }
+
     return NULL;
 }
-int main()
-{
-    int x = 0, y = 0;
-/* show the initial values of x and y */
-    printf("x: %d, y: %d\n", x, y);
-/* this variable is our reference to the second thread */
-    pthread_t inc_x_thread;
-/* create a second thread which executes inc_x(&x) */
-    if(pthread_create(&inc_x_thread, NULL, inc_x, &x)) {
-        fprintf(stderr, "Error creating thread\n");
-        return 1;
+
+int main() {
+    int i;
+    srand(time(NULL));
+
+    int arrayI[MAX_THREAD];
+    pthread_t array[MAX_THREAD];
+
+    for (int h = 0; h < MAX_THREAD; h++) {
+        arrayI[h] = h;
     }
-/* increment y to 100 in the first thread */
-    while(++y < 100);
-    printf("y increment finished\n");
-/* wait for the second thread to finish */
-    if(pthread_join(inc_x_thread, NULL)) {
-        fprintf(stderr, "Error joining thread\n");
-        return 2;
+
+    for (i = 0; i < MAX_THREAD; i++) {
+        pthread_create(&array[i], NULL, myThreadFun, (void *) &arrayI[i]);
     }
-/* show the results - x is now 100 thanks to the second thread */
-    printf("x: %d, y: %d\n", x, y);
+    for (int j = 0; j < MAX_THREAD; j++) {
+        pthread_join(array[j], NULL);
+    }
+
+    pthread_exit(NULL);
     return 0;
 }
