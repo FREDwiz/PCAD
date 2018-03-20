@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <unistd.h>
 
 /*
  * Esercizio 2 Asynchronous Functions with Pthreads
@@ -25,29 +26,59 @@
  *
  */
 
-void asynch(){
+#define MAX_THREAD 5
 
+int arrayG[50];
 
+void *asynch(void *vargp) {
 
+    int *myid = (int *) vargp;
 
-    return 0;
+    // codice a caso tanto per fargli fare qualcosa
+    int counter = 1;
+    printf("DEBUG[THREAD]\n");
+
+    for (int i = 0; i < 10; i++) {
+        counter *= 2;
+        sleep(1);
+        //printf("Il valore counter vale: %d\n", counter);
+    }
+    arrayG[*myid] = (*myid) * counter;
+    return &arrayG[*myid];
 }
 
-void get(){
-    return NULL;
+void get() {
+    // robe future a cui penserò
+
+
 }
 
-int main(){
+int main() {
 
-    pthread_t thd;
+    printf("DEBUG[1]\n");
 
-    pthread_create(&thd, NULL, asynch(),);
+    pthread_t thd[20];  // il thread su cui voglio lavorare a parte
+    pthread_t array[20]; // l'array nel quale memorizzo
 
-    get();
+    printf("DEBUG[2]\n");
 
+    // Chiamata di asynch
+    for (int i = 0; i < MAX_THREAD; i++) {
+        array[i] = i * 2;
+        pthread_create(&thd[i], NULL, asynch, &array[i]); // che faccio qui con l'array?
+    }
 
+    printf("DEBUG[3]\n");
 
+    //get();
 
+    for (int i = 0; i < MAX_THREAD; i++) {
+        int *temp;
+        pthread_join(thd[i], (void **)&temp);
+        printf("temp: %d, i: %d\n", *temp, i);
+    }
+
+    pthread_detach(thd);
 
     return 0;
 }
