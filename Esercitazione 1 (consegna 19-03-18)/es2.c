@@ -1,21 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
 
 /*
  * Esercizio 2 Asynchronous Functions with Pthreads
- *
- * Consideriamo una funzione chiamata “asynch” con le seguenti caratteristiche:
- * - quando chiamata dal main viene eseguita su un thread separato.
- * - l’esecuzione effettua un task costoso in termini di tempo(es simulato anche solo con una “sleep” di alcuni secondi)
- * - la chiamata restituisce prima della terminazione un valore (es. un intero) al chiamante.
- *
- * Consideriamo ora una funzione “get” con le seguenti caratteristiche:
- * - permette al main di poter recuperare il risultato di una determinata chiamata di asych in un qualsiasi passo della
- *   sua esecuzione.
- * - “get” deve essere bloccante per il main quando il risultato relativo alla chiamata di asynch non è ancora
- *   disponibile.
  *
  * Es. main invoca  async (eseguita in maniera asincrona su un thread separato) main effettua una serie di
  * elaborazioni qualsiasi (es. sleep di K secondi) main invoca get e si blocca ﬁno a che il risultato è pronto main
@@ -27,58 +17,90 @@
  */
 
 #define MAX_THREAD 5
+#define MAX_ITER 50
 
-int arrayG[50];
+int arrayG[MAX_THREAD];
+pthread_mutex_t mutexes[MAX_THREAD];
+
+/*
+ * Consideriamo una funzione chiamata “asynch” con le seguenti caratteristiche:
+ * - quando chiamata dal main viene eseguita su un thread separato.
+ * - l’esecuzione effettua un task costoso in termini di tempo(es simulato anche solo con una “sleep” di alcuni secondi)
+ * - la chiamata restituisce prima della terminazione un valore (es. un intero) al chiamante.
+ */
 
 void *asynch(void *vargp) {
 
-    int *myid = (int *) vargp;
+    printf("[asynch] ***INSIDE***\n");
+    int myid = *((int *) vargp);
 
-    // codice a caso tanto per fargli fare qualcosa
-    int counter = 1;
-    printf("DEBUG[THREAD]\n");
+    arrayG[myid] = 1;
 
     for (int i = 0; i < 10; i++) {
-        counter *= 2;
-        sleep(1);
-        //printf("Il valore counter vale: %d\n", counter);
+        sleep(5);
+
+        pthread_mutex_lock(&mutexes[myid]);
+        arrayG[myid] *= 2;
+        pthread_mutex_unlock(&mutexes[myid]);
+
     }
-    arrayG[*myid] = (*myid) * counter;
-    return &arrayG[*myid];
+    arrayG[myid] = myid * arrayG[myid];
+    return &arrayG[myid];
 }
 
-void get() {
-    // robe future a cui penserò
+/*
+ * Consideriamo ora una funzione “get” con le seguenti caratteristiche:
+ * - permette al main di poter recuperare il risultato di una determinata chiamata di asych in un qualsiasi passo della
+ *   sua esecuzione.
+ * - “get” deve essere bloccante per il main quando il risultato relativo alla chiamata di asynch non è ancora
+ *   disponibile.
+ */
 
+int get(int myid) {
 
+    printf("[get] ***INSIDE***\n");
+
+    int status;
+    pthread_mutex_lock(&mutexes[myid]);
+    status = arrayG[myid];
+    pthread_mutex_unlock(&mutexes[myid]);
+
+    return status;
 }
 
 int main() {
 
-    printf("DEBUG[1]\n");
+    printf("Creating the threads...\n");
 
-    pthread_t thd[20];  // il thread su cui voglio lavorare a parte
-    pthread_t array[20]; // l'array nel quale memorizzo
+    pthread_t thd[MAX_THREAD];  // il thread su cui voglio lavorare
+    pthread_t array[MAX_THREAD]; // l'array nel quale memorizzo
 
-    printf("DEBUG[2]\n");
+    printf("Calling asynch() ***START***\n");
 
-    // Chiamata di asynch
+    // Chiamata di asynch()
     for (int i = 0; i < MAX_THREAD; i++) {
         array[i] = i * 2;
-        pthread_create(&thd[i], NULL, asynch, &array[i]); // che faccio qui con l'array?
+        pthread_create(&thd[i], NULL, asynch, &array[i]);
     }
 
-    printf("DEBUG[3]\n");
+    printf("Calling asynch() ***END***\n");
 
-    //get();
+    printf("Calling get() ***START***\n");
+
+    // Chiamata di get()
+
+    for (int i = 0; i < MAX_ITER; i++) {
+        int th = rand() % MAX_THREAD;
+        int stat = get(th);
+        printf("Thread %d has status %d\n", th, stat);
+        sleep(1);
+    }
+
+    printf("Calling get() ***END***\n");
 
     for (int i = 0; i < MAX_THREAD; i++) {
-        int *temp;
-        pthread_join(thd[i], (void **)&temp);
-        printf("temp: %d, i: %d\n", *temp, i);
+        printf("Detaching thread # %d\n", i);
+        pthread_detach(thd[i]);
     }
-
-    pthread_detach(thd);
-
     return 0;
 }
