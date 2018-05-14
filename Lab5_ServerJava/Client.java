@@ -1,6 +1,6 @@
 /*
 *   Client
-*   I client si collegano al server nviando una richiesta di registrazione con il proprio user-id (stringa).	X
+*   I client si collegano al server inviando una richiesta di registrazione con il proprio user-id (stringa).	X
 *   Se lo user-id compare già nella lista il server risponde al client con "Fail".								X
 *   Altrimenti aggiunge lo user-id alla lista																	X
 *	e risponde con "Ok".																						X
@@ -31,7 +31,6 @@ class TCPClient {
 		if(response.equals("CONNECTED")) { System.out.println(response + ": Connection accepted"); }
 		else{ System.out.println(response + ": Connection refused"); }
 
-		System.out.println("Closing socket");
 		clientSocket.close();
 	}
 }

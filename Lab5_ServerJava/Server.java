@@ -10,6 +10,15 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.lang.*;
+import java.util.concurrent.*; 
+
+class MyThread extends Thread {
+
+	public MyThread (String s) { 
+		super(s); 
+	}
+}
 
 
 class TCPServer {
@@ -17,14 +26,14 @@ class TCPServer {
 		
 		final int PORT = 9000;
 		final int TIMEOUT = 60000;
-		static int numberOfThreads = 5;
+		final int numberOfThreads = 5;
 
 		String uuid;
 		ServerSocket welcomeSocket = new ServerSocket(PORT);
 		
+		ExecutorService tp = Executors.newFixedThreadPool(numberOfThreads);
 
-
-		System.out.println("TCPServer Waiting for client on port " + PORT);
+		System.out.println("TCPServer Listening on port " + PORT);
 		
 		List<String> IDs = new ArrayList<String>();
 
@@ -44,15 +53,30 @@ class TCPServer {
 			if(!IDs.contains(uuid)){
 				
 				outToClient.writeBytes("CONNECTED");
-				outToClient.close();
+				
 
 				IDs.add(uuid);
 
 				System.out.println("Guess who joined:\n" + uuid);
 
+				for(int i=0; i<numberOfThreads; i++){
+					
+					//int n = (int)(Math.random()*1000);
+
+					MyThread temp = new MyThread("Thread #" + i);
+        			System.out.println("Started Thread:" + i);
+        			temp.start();
+        			temp.sleep(5000);
+        			System.out.println("Waiting for " + i + " milliseconds on thread #" + i);
+				}
+
+				tp.shutdown();
+
 				System.out.println("\nOther joiners:");
 
 				for (int i = 0; i < IDs.size(); i++) { System.out.println(IDs.get(i)); }
+
+				outToClient.close();
 					
 			}
 			else{ 
