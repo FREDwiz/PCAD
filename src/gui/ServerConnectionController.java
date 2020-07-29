@@ -33,14 +33,20 @@ public class ServerConnectionController {
 	private Label connectedServer;
 
 	@FXML
+	private Label connectedServerBroker;
+
+	@FXML
+	private Label title;
+
+	@FXML
 	void startServer(MouseEvent event) throws InterruptedException {
 			try {
 				Registry registry = null;
 
 				try {
-					registry = LocateRegistry.createRegistry(0);
+					registry = LocateRegistry.createRegistry(8080);
 				} catch (RemoteException e) {
-					registry = LocateRegistry.getRegistry(0);
+					registry = LocateRegistry.getRegistry(8080);
 				}
 
 				System.out.println("Registro trovato");
@@ -49,9 +55,8 @@ public class ServerConnectionController {
 				InterfaceServer stub = (InterfaceServer) UnicastRemoteObject.exportObject(server,0);
 				InetAddress addr = InetAddress.getLocalHost();
 				String ip = addr.getHostAddress();
-				//int port = server.getLocalPort();
 
-				System.out.println("Istanza server creata all'indirizzo " + ip + ":" /*+ port*/);
+				System.out.println("Istanza server creata all'indirizzo " + ip);
 				registry.bind("server", stub);
 				System.err.println("OK");
 				Scanner scanner = new Scanner(System.in);
@@ -65,26 +70,26 @@ public class ServerConnectionController {
 					
 					try {
 						InterfaceServer brokerServer = (InterfaceServer) Naming.lookup("//"+ipAddress+":"+"8080"+"/"+"server");
-						System.out.println("\n" + "Istanza Broker creata" +"\nOK");
-						connectedServer.setText("Istanza Broker creata con " +ipAddress+"\nOK");
+						//System.out.println("\n" + "Istanza Broker creata" +"\nOK");
+						startButton.setVisible(false);
+						title.setText("SERVER BROKER");
+						connectedServer.setText("Main: " + ipAddress);
 						connectedServer.setVisible(true);
+						connectedServerBroker.setText("Broker: " + ip);
+						connectedServerBroker.setVisible(true);
 						server.setBroker(brokerServer);     
 						brokerServer.setBroker(server);
-						//Stage stage = (Stage) pane.getScene().getWindow();
-						//stage.setIconified(true);
-					} 
+					}
 					catch (Exception  e) {e.printStackTrace();}
 				}
 				
 				else {
-					System.out.println("Server created at " + ip);
+					//System.out.println("Server created at " + ip);
 					startButton.setVisible(false);
+					title.setText("SERVER PRINCIPALE");
 					connectedServer.setText("IP: " + ip);
 					connectedServer.setVisible(true);
 				}
-
-				//Stage stage = (Stage) pane.getScene().getWindow();
-				//stage.setIconified(true);
 			}
 
 			catch (Exception e) {

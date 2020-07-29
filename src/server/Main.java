@@ -21,7 +21,5 @@ public class Main extends Application {
 		primaryStage.setTitle("Server");
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		System.out.println(System.getProperty("java.version"));
-		System.out.println(System.getProperty("javafx.version"));
 	}
 }
