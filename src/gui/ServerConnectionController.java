@@ -70,7 +70,6 @@ public class ServerConnectionController {
 					
 					try {
 						InterfaceServer brokerServer = (InterfaceServer) Naming.lookup("//"+ipAddress+":"+"8080"+"/"+"server");
-						//System.out.println("\n" + "Istanza Broker creata" +"\nOK");
 						startButton.setVisible(false);
 						title.setText("SERVER BROKER");
 						connectedServer.setText("Main: " + ipAddress);
@@ -84,7 +83,6 @@ public class ServerConnectionController {
 				}
 				
 				else {
-					//System.out.println("Server created at " + ip);
 					startButton.setVisible(false);
 					title.setText("SERVER PRINCIPALE");
 					connectedServer.setText("IP: " + ip);

@@ -82,7 +82,6 @@ public class PublishTopicController {
 	@FXML
 	public void initializeCurrentTopicLabel() {
 		currentTopicLabel.setText("");
-		//currentTopicLabel.setVisible(false);
 	}
 	@FXML
 	void resetNoSelectedTopicLabel(ActionEvent event) {
@@ -116,17 +115,15 @@ public class PublishTopicController {
 	@FXML
 	void selectTopic(MouseEvent event) {
 		String topicname = topicList.getSelectionModel().getSelectedItem();
-		if(topicList.getItems().size()>0 && topicname!= "" && topicname != null)
-		{
+		if(topicList.getItems().size()>0 && topicname!= "" && topicname != null) {
 			currentTopicLabel.setText("");
 			currentTopicLabel.setVisible(true);
 			currentTopicLabel.setText("Topic selezionato: " + topicname);
-			chatPanel.computeIfPresent(topicname,(k,v) -> {
+			chatPanel.computeIfPresent(topicname, (k, v) -> {
 				v.toFront();
 				return v;
 			});
 		}
-		else {}
 	}
 
 	@FXML
